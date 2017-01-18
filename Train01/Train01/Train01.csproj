@@ -42,8 +42,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Duck.cs" />
+    <Compile Include="Ducks.cs" />
+    <Compile Include="FlyBehaviours.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="QuackBehaviours.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
