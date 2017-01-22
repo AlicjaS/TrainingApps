@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Train01
+namespace StrategyPattern
 {
     class FlyWithWings : IFlyBehaviour
     {
