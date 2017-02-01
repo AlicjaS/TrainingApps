@@ -1,32 +1,52 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ObserverPattern
 {
-    class CurrentWeatherDisplay : IWeatherDisplay, IWeatherObserver
+    class CurrentWeatherDisplay : IWeatherDisplay, IObserver<WeatherStats>
     {
-        private IWeatherState _weatherState;
+        private List<WeatherStats> _weatherStats;
+        private IDisposable _cancellation;
 
-        private int _temperature;
-        private int _humidity;
-        private int _pressure;
-
-        public CurrentWeatherDisplay(IWeatherState weatherState)
+        public CurrentWeatherDisplay()
         {
-            _weatherState = weatherState;
-            _weatherState.RegisterObserver(this);
+            _weatherStats = new List<WeatherStats>();
+        }
+
+        public virtual void Subscribe(IObservable<WeatherStats> weatherStation)
+        {
+            _cancellation = weatherStation.Subscribe(this);
         }
 
         public void Display()
         {
-            Console.WriteLine("CurrentWeatherDisplay: temp: {0}, hum: {1}, press: {2}", _temperature, _humidity, _pressure);
+            Console.WriteLine("CurrentWeatherDisplay: temp: {0}, hum: {1}, press: {2}", 
+                _weatherStats.Last().Temperature, 
+                _weatherStats.Last().Humidity, 
+                _weatherStats.Last().Pressure);
         }
 
-        public void Update(int temperature, int humidity, int pressure)
+        public virtual void Unsubscribe()
         {
-            _temperature = temperature;
-            _humidity = humidity;
-            _pressure = pressure;
+            _cancellation.Dispose();
+            _weatherStats.Clear();
+        }
+
+        public void OnNext(WeatherStats value)
+        {
+            _weatherStats.Add(value);
             Display();
+        }
+
+        public void OnError(Exception error)
+        {
+            Console.WriteLine("An error occured: {0}", error.Message);
+        }
+
+        public void OnCompleted()
+        {
+            _weatherStats.Clear();
         }
     }
 }

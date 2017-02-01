@@ -4,38 +4,49 @@ using System.Linq;
 
 namespace ObserverPattern
 {
-    class AverageWeather : IWeatherDisplay, IWeatherObserver
+    class AverageWeather : IWeatherDisplay, IObserver<WeatherStats>
     {
-        private IWeatherState _weatherState;
+        private List<WeatherStats> _weatherStats;
+        private IDisposable _cancellation;
 
-        private List<int> _temperatures;
-        private List<int> _humidities;
-        private List<int> _pressures;
-
-        public AverageWeather(IWeatherState weatherState)
+        public AverageWeather()
         {
-            _weatherState = weatherState;
-            _weatherState.RegisterObserver(this);
+            _weatherStats = new List<WeatherStats>();
+        }
 
-            _temperatures = new List<int>();
-            _humidities = new List<int>();
-            _pressures = new List<int>();
+        public virtual void Subscribe(IObservable<WeatherStats> weatherStation)
+        {
+            _cancellation = weatherStation.Subscribe(this);
         }
 
         public void Display()
         {
-            Console.WriteLine("AverageWeather: Avg-temp: {0:F}, Avg-hum: {1:F}, Avg-press: {2:F}", 
-                _temperatures.Average(), 
-                _humidities.Average(), 
-                _pressures.Average());
+            Console.WriteLine("AverageWeather: Avg-temp: {0:F}, Avg-hum: {1:F}, Avg-press: {2:F}",
+                _weatherStats.Select(stats => stats.Temperature).Average(),
+                _weatherStats.Select(stats => stats.Humidity).Average(),
+                _weatherStats.Select(stats => stats.Pressure).Average());
         }
 
-        public void Update(int temperature, int humidity, int pressure)
+        public virtual void Unsubscribe()
         {
-            _temperatures.Add(temperature);
-            _humidities.Add(humidity);
-            _pressures.Add(pressure);
+            _cancellation.Dispose();
+            _weatherStats.Clear();
+        }
+
+        public void OnNext(WeatherStats value)
+        {
+            _weatherStats.Add(value);
             Display();
+        }
+
+        public void OnError(Exception error)
+        {
+            Console.WriteLine("An error occured: {0}", error.Message);
+        }
+
+        public void OnCompleted()
+        {
+            _weatherStats.Clear();
         }
     }
 }
